@@ -1,8 +1,8 @@
-import firebase from 'firebase/app';
-import 'firebase/firestore';
-import 'firebase/auth';
-import store from './store';
-import config from './fireBaseConfig'
+import firebase from "firebase/app";
+import "firebase/firestore";
+import "firebase/auth";
+import store from "./store";
+import config from "./fireBaseConfig";
 
 function initFirebase() {
   firebase.initializeApp(config);
@@ -10,7 +10,7 @@ function initFirebase() {
     .auth()
     .signInAnonymously()
     .catch(function(error) {
-      console.log('error');
+      console.log("error");
       // Handle Errors here.
       const errorCode = error.code;
       const errorMessage = error.message;
@@ -19,17 +19,17 @@ function initFirebase() {
     });
 
   function setUser(uid) {
-    console.log('setUser', uid);
-    store.dispatch({ type: 'SET_USER', uid });
+    console.log("setUser", uid);
+    store.dispatch({ type: "SET_USER", uid });
   }
 
   firebase.auth().onAuthStateChanged(function(user) {
     if (user) {
       const uid = user.uid;
-      console.log('User is signed in.' + uid);
+      console.log("User is signed in." + uid);
       setUser(uid);
     } else {
-      console.log('User is signed out.');
+      console.log("User is signed out.");
     }
   });
 

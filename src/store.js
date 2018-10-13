@@ -1,14 +1,14 @@
-import { createStore, combineReducers } from 'redux';
+import { createStore, combineReducers } from "redux";
 
 function form(
   state = {
-    userName: '',
-    roomName: ''
+    userName: "",
+    roomName: ""
   },
   action
 ) {
   switch (action.type) {
-    case 'SET_FORM':
+    case "SET_FORM":
       return {
         ...state,
         ...action.form
@@ -20,13 +20,13 @@ function form(
 
 function user(
   state = {
-    uid: '',
+    uid: "",
     isConnected: false
   },
   action
 ) {
   switch (action.type) {
-    case 'SET_USER':
+    case "SET_USER":
       return {
         ...state,
         uid: action.uid,
@@ -39,16 +39,29 @@ function user(
 
 function currentRoom(
   state = {
-    roomLoaded: false
+    roomLoaded: false,
+    roomNotFound: false,
+    error: false
   },
   action
 ) {
   switch (action.type) {
-    case 'SET_ROOM':
+    case "SET_ROOM":
       return {
         ...state,
         roomLoaded: true,
         ...action.room
+      };
+    case "ROOM_NOT_FOUND":
+      return {
+        ...state,
+        roomLoaded: false,
+        roomNotFound: true
+      };
+    case "ROOM_ERROR":
+      return {
+        ...state,
+        error: true
       };
     default:
       return state;
