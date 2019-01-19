@@ -4,8 +4,10 @@ import styled from "styled-components";
 export default styled.div`
   display: flex;
   margin: 5px;
+  flex-wrap: wrap;
   ${props => (props.full ? "width : 100%" : "")};
-  ${props => (props.centered ? "justify-content : center" : "")};
+  ${props =>
+    props.centered ? "justify-content : center; align-items : center;" : ""};
   ${props =>
     props.width
       ? css`

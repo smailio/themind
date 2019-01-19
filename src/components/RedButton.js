@@ -5,7 +5,7 @@ export default styled.button`
   vertical-align: top;
   width: 100%;
   height: 50px;
-  padding: 5px 0 0 0;
+  padding: 5px;
   font-size: 22px;
   color: white;
   text-align: center;

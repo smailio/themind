@@ -1,69 +1,42 @@
 import React from "react";
 import { connect } from "react-redux";
-import { enterRoom } from "../api/room";
 import { withRouter } from "react-router-dom";
+import WaitingRoom from "./WaitingRoom";
 import CenteredPage from "./CenteredPage";
-import BlueButton from "./BlueButton";
-import Row from "./Row";
+import Game from "./Game";
+import * as actions from "../actions";
+import Loader from "./Loader";
 
 class Room extends React.Component {
   componentDidMount() {
     console.log("Room componentDidMount props", this.props);
     console.log("Room componentDidMount call enterRoom");
-    this.enterRoom();
+    this.props.enterRoom().then(exitRoom => {
+      console.log("save exitRoom function in this", exitRoom, this);
+      this.exitRoom = exitRoom;
+    });
   }
 
-  enterRoom() {
-    const roomId = this.props.match.params.roomId;
-    const {
-      userId,
-      history,
-      setRoom,
-      setRoomNotFound,
-      setRoomError
-    } = this.props;
-    enterRoom(roomId, userId).then(r => {
-      const type = r.type;
-      console.log("Room componentDidMount enterRoom then type", type);
-      switch (type) {
-        case "ASK_NAME":
-          console.log("Room REDIRECT TO JOIN ROOM");
-          history.push(`join/${roomId}`);
-          break;
-        case "SHOW_ROOM":
-          setRoom(r.room);
-          break;
-        case "ROOM_NOT_FOUND":
-          setRoomNotFound();
-          break;
-        case "ERROR":
-          setRoomError();
-          break;
-        default:
-          break;
-      }
-    });
+  componentWillUnmount() {
+    if (this.exitRoom) {
+      this.exitRoom();
+    }
   }
 
   render() {
     console.log("Room render this.props", this.props);
     if (!this.props.roomLoaded) {
-      return <CenteredPage>Room is loading</CenteredPage>;
+      return <Loader />;
     } else if (this.props.roomNotFound) {
-      return <Row>It seems that this room doesn't exists</Row>;
-    } else {
       return (
-        <CenteredPage columnar>
-          <Row style={{ marginBottom: 24 }}>
-            {this.props.players.map(player => player.userName).join(", ")}.
-          </Row>
-          {this.props.creatorUid === this.props.userId && (
-            <Row>
-              <BlueButton>Start Game</BlueButton>
-            </Row>
-          )}
-        </CenteredPage>
+        <CenteredPage>It seems that this room doesn't exists</CenteredPage>
       );
+    } else if (this.props.joiningClosed) {
+      return <CenteredPage>A game is in progress in this room !</CenteredPage>;
+    } else if (!this.props.gameStarted) {
+      return <WaitingRoom />;
+    } else {
+      return <Game />;
     }
   }
 }
@@ -71,13 +44,41 @@ class Room extends React.Component {
 export default withRouter(
   connect(
     state => ({
-      ...state.currentRoom,
-      userId: state.user.uid
+      currentRoom: state.currentRoom,
+      userId: state.user.uid,
+      joiningClosed:
+        state.currentRoom.gameStarted &&
+        !state.currentRoom.players.map(p => p.uid).includes(state.user.uid)
     }),
-    dispatch => ({
-      setRoom: room => dispatch({ type: "SET_ROOM", room }),
-      setRoomNotFound: () => dispatch({ type: "ROOM_NOT_FOUND" }),
-      setRoomError: () => dispatch({ type: "ROOM_ERROR" })
-    })
+    (
+      dispatch,
+      {
+        history,
+        match: {
+          params: { roomId }
+        }
+      }
+    ) => ({
+      enterRoom: userId => actions.enterRoom(roomId, userId)(dispatch, history)
+    }),
+    (
+      stateProps,
+      dispatchProps,
+      {
+        match: {
+          params: { roomId }
+        }
+      }
+    ) => {
+      const { currentRoom, ...rest } = stateProps;
+      return {
+        ...(currentRoom.roomId === roomId
+          ? currentRoom
+          : { roomLoaded: false }),
+        ...dispatchProps,
+        ...rest,
+        enterRoom: () => dispatchProps.enterRoom(stateProps.userId)
+      };
+    }
   )(Room)
 );
